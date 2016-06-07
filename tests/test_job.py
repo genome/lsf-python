@@ -29,6 +29,16 @@ class JobStatusTests(unittest.TestCase):
 
         self._verify_job_dict_additional_fields(job_dict)
 
+    def test_job_as_dict_without_exec(self):
+        job = lsf.get_job(self.job.job_id, include_exec_info=False)
+        job_dict = job.as_dict
+
+        self._verify_job_dict_statuses(job_dict['statuses'])
+        self._verify_job_dict_submit_portion(job_dict['submit'])
+
+        self._verify_job_dict_additional_fields(job_dict)
+        self.assertFalse('exHosts' in job_dict)
+
     def _verify_job_dict_statuses(self, statuses):
         self.assertGreater(len(statuses), 0)
         possible_valid_statuses = {'DONE', 'PDONE', 'PEND', 'RUN'}
