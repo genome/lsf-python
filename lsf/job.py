@@ -29,13 +29,14 @@ __all__ = ['get_job']
 LOG = logging.getLogger(__name__)
 
 
-def get_job(job_id):
-    return Job(job_id)
+def get_job(job_id, include_exec_info=True):
+    return Job(job_id, include_exec_info)
 
 
 class Job(object):
-    def __init__(self, job_id):
+    def __init__(self, job_id, include_exec_info=True):
         self.job_id = job_id
+        self.include_exec_info = include_exec_info
 
     def __eq__(self, other):
         return self.job_id == other.job_id
@@ -50,7 +51,7 @@ class Job(object):
             'submit': _request_info(jobinfo.submit),
         }
 
-        result.update(_get_additional_lsf_supplied_fields(jobinfo))
+        result.update(_get_additional_lsf_supplied_fields(jobinfo, self.include_exec_info))
 
         return result
 
@@ -123,7 +124,7 @@ _EXEC_FIELDS = [
     'execUid',
     'execUsername',
 ]
-def _get_additional_lsf_supplied_fields(jobinfo):
+def _get_additional_lsf_supplied_fields(jobinfo, include_exec_info):
     result = {
         field: getattr(jobinfo, field) for field in _DIRECT_COPY_FIELDS
     }
@@ -140,7 +141,7 @@ def _get_additional_lsf_supplied_fields(jobinfo):
             if getattr(jobinfo, field) > 0
     })
 
-    if _exec_available(jobinfo):
+    if include_exec_info and _exec_available(jobinfo):
         result.update({
             field: getattr(jobinfo, field)
                 for field in _EXEC_FIELDS
